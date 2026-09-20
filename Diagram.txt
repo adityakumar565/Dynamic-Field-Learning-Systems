@@ -1,0 +1,57 @@
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                              THE NOISY FORAGER: ARCHITECTURE                           │
+└────────────────────────────────────────────────────────────────────────────────────────┘
+
+  ████ WORLD ENVIRONMENT ███████████████████████████████████████████████████████████████
+  
+      ┌───────────────────────┐                         ┌───────────────────────┐
+      │                       │                         │                       │
+      │      STATE SPACE      │ ◄═════════════════════► │     GLOBAL FIELD      │
+      │ (Grid & Target [x,y]) │   [StateField Bridge]   │(Continuous over Grid) │
+      │                       │                         │                       │
+      └───────────────────────┘                         └───────────────────────┘
+           │      ▲       │                                         │
+           │      │       │ [StateTop Bridge]                       │ [Field Gener Bridge]
+           │      │       ▼                                         ▼
+  ████ AGENT INNER LOOP ████████████████████████████████████████████████████████████████
+           │      │   ┌───────────────────────┐         ┌───────────────────────┐
+           │      │   │                       │         │                       │
+           │      │   │       TOPOLOGY        │ ══════► │       GENERATOR       │
+           │      │   │   (Local Window)      │[Topology│ (Sensor Model/Noise)  │
+           │      │   │                       │ Gener   │                       │
+           │      │   └───────────────────────┘ Bridge] └───────────────────────┘
+           │      │                                                 │
+           │      │                                                 │ [Gen Trans Bridge]
+           │      │                                                 │ (Noisy Local Field)
+           │      │                                                 ▼
+           │      │   [Decided Action]                  ┌───────────────────────┐
+           │      └──────────────────────────────────── │                       │
+           │                                            │      TRANSITION       │
+           │                                            │   (Discrete Policy)   │
+           │                                            │                       │
+           │                                            └───────────────────────┘
+           │ [State Cost Bridge]                                    │
+           │ (Ground Truth)                                         │ [Transition Cost Bridge]
+           │                                                        │ (Steps Taken)
+           ▼                                                        ▼
+  ████ OUTER LOOP LEARNING █████████████████████████████████████████████████████████████
+  
+      ┌───────────────────────┐                         ┌───────────────────────┐
+      │                       │                         │                       │
+      │    COST EVALUATION    │ ══════════════════════► │    LEARNING MODULE    │
+      │   (Distance + Time)   │         [Loss]          │      (Optimizer)      │
+      │                       │                         │                       │
+      └───────────────────────┘                         └───────────────────────┘
+                                                                    │
+             [Tunable Parameters: Belief / Action Weights]          │
+         ◄ - - - - - - - - - - - - - - - - - - - - - - - - - - - - -┤
+                                                                    │
+             [Tunable Parameters: Sensor Bias / Noise Filter]       │
+         ◄ - - - - - - - - - - - - - - - - - - - - - - - - - - - - -┘
+
+  ──────────────────────────────────────────────────────────────────────────────────────
+  LEGEND:
+  ════► / ◄════ : Data Flow (Inner Loop)
+  - - - ►       : Parameter Tuning (Outer Loop)
+  [Bridge Name] : Explicit Data Structure / Memory Layout
+  ──────────────────────────────────────────────────────────────────────────────────────

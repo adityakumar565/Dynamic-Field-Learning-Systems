@@ -1,0 +1,6 @@
+﻿out/
+bin/
+data/
+*.class
+.vscode/
+scratch/

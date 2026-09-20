@@ -10,7 +10,7 @@ if (-Not (Test-Path $outDir)) {
 
 Write-Host "Compiling project to '$outDir'..." -ForegroundColor Cyan
 
-# Find all .java files in the project
+# Find all .java files in the project (recursively searches src/main/java)
 $javaFiles = Get-ChildItem -Path . -Filter *.java -Recurse | Select-Object -ExpandProperty FullName
 
 # Compile all Java files into the out directory

@@ -29,3 +29,6 @@ data/runs_dynamic/
 # Python specific
 __pycache__/
 *.pyc
+
+# Maven output
+target/

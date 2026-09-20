@@ -81,12 +81,37 @@ for (int epoch = 1; epoch <= 50; epoch++) {
 ## 🚀 Setup & Execution
 
 ### Prerequisites
-* Java JDK (8+)
-* Python 3.8+ (with `pandas` and `matplotlib` installed)
+Ensure you have the following installed on your system before starting:
+* **Git** (for cloning the repository)
+* **Java JDK (8+)** (for compiling and running)
+* **Maven 3.x** (for building the library)
+* **Python 3.8+** (Optional: only needed if you want to run the visualizers, requires `pandas` and `matplotlib`)
 
-### Running the Engine
+### 1. Clone the Repository
+Download the code to your local machine:
+```bash
+git clone https://github.com/adityakumar565/Dynamic-Field-Learning-Systems.git
+cd Dynamic-Field-Learning-Systems
+```
 
-We have provided a cross-platform compilation script that ensures your source tree stays clean by compiling to a hidden `out/` folder, running the Java engine, and automatically kicking off the Python visualizer.
+### 2. Build the Library
+Compile the project and install it to your local Maven cache. This makes the `jar` file available for your other local projects to use:
+```bash
+mvn clean install
+```
+
+### 3. Use in Your Project
+You can now easily include this engine in any of your own Maven-based Java or Spring Boot applications by adding the following dependency to your `pom.xml`:
+```xml
+<dependency>
+    <groupId>com.adityakumar565.dfls</groupId>
+    <artifactId>dynamic-field-learning-systems</artifactId>
+    <version>1.0-prototype</version>
+</dependency>
+```
+
+### Running the Standalone Simulation
+If you just want to run the provided simulation directly without building a separate project, you can use the included PowerShell script:
 
 **Windows (PowerShell):**
 ```powershell

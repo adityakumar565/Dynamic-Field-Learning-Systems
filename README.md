@@ -1,4 +1,4 @@
-# AI Forger Agent (v1.0 Prototype)
+# Dynamic Field Learning Systems (DFLS) (v1.0 Prototype)
 
 [![Java](https://img.shields.io/badge/Java-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)](https://java.com/)
 [![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org/)

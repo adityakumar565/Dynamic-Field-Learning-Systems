@@ -1,56 +1,38 @@
-# Project Context: The Noisy Forager Simulation
+# Project Context: Dynamic Field Learning Systems (DFLS)
 
-This document serves as the foundational architectural specification and context guide for building "The Noisy Forager." This project merges a Partially Observable Markov Decision Process (POMDP) with a Data-Oriented Design (DOD) Entity Component System (ECS) architecture to create a parameter-tunable learning environment.
+This document serves as the foundational architectural specification and context guide for building **DFLS**. This project is a blisteringly fast, data-oriented physics and continuous planning engine that optimizes dynamic state-space traversal using batch array processing and Evolutionary Machine Learning.
 
-## 1. Project Overview & Constraints
-* Goal: A "Forager" agent must navigate a fixed 2D grid to locate a hidden, stationary Target. The agent cannot see the target; it only receives noisy distance readings (fields) from its immediate neighborhood (topology). It uses Bayesian dynamic state transitions to calculate the most probable next step.
-* Language: Java.
-* Memory Constraint (Cache Locality): To mimic high-performance ECS architecture in Java, strictly avoid arrays of objects (e.g., Component[]). Data must be stored in parallel primitive arrays (e.g., float[] position_x, float[] position_y) to ensure memory contiguity.
-* Dependency Constraint: Modules are strictly isolated. Modules must never call methods on each other. All data passes through "Bridges" (pure data structs/primitive arrays) routed by a central Orchestrator (World).
-* Parameterization: All dynamically assigned functions (Generator, Transition) must accept a raw float[] params vector for their tunable variables to remain optimizer-agnostic.
+## 1. Project Overview & Current State (V1.0 Completed)
+* **V1.0 Status**: The V1.0 Prototype is 100% complete and frozen on the `prototype` Git branch under the tag `v1.0-prototype`.
+* **Git Strategy**: 
+  - `prototype`: Contains the frozen V1 DOD implementation.
+  - `dev` -> `st` -> `prod`: Forward-flowing deployment branches where the V2 rewrite will take place.
+* **Build System**: The project uses a standard Maven layout (`src/main/java`). To execute without Maven, use `.\compile_and_run.ps1` which recursively finds and compiles `.java` files using raw `javac`.
+* **Visualizer**: Python scripts (`plot_trajectories.py`) render convergence paths and optimization curves from CSV dumps.
 
-## 2. Core Architecture
+## 2. V1.0 Core Architecture (Reference)
+The V1 prototype proved the mathematical feasibility of array-flattened continuous topologies using the following loop:
+1. **State Space**: Continuous `X,Y` memory blocks.
+2. **Topology**: Rule engine generating adjacent states (actions).
+3. **Generator**: Reads local environment fields based on topology.
+4. **Transition**: Aggregates fields to pick optimal next steps.
+5. **Evolutionary Optimizer**: Outer-loop that uses cost functions (like distance) to mutate agent behavior across epochs.
+*(Crucial limitation of V1: The arrays were hardcoded to `double[][][]`, tightly coupling dimensions and blocking N-dimensional dynamic scaling).*
 
-The architecture is divided into an Inner Loop (tick-by-tick simulation) and an Outer Loop (episode evaluation and learning), connected by explicit data structures.
+## 3. V2.0 Architecture Goals (The Next Phase)
 
-### The Inner Loop (Perception & Execution)
-Executes every tick until the Target is found or the time limit expires.
-1. State Space: Holds static terrain and dynamic entity positions.
-2. Field: Defines the mathematical operations (vector algebra, identity, noise application) over the State Space.
-3. Topology: Defines the agent's spatial awareness (e.g., a local window of Up, Down, Left, Right).
-4. Generator (Sensor Model): Reads the true Field within the Topology, applies parameterized noise, and outputs a noisy local field.
-5. Transition (Policy): Reads the noisy local field, applies Bayesian probability updates based on tunable parameters, and outputs a discrete Action (movement vector).
+When an AI agent assists with V2.0, they must prioritize the following architectural rules:
 
-### The Outer Loop (Learning & Optimization)
-Executes only at the end of an episode.
-1. Cost Evaluation: Calculates the mathematical loss based on total steps taken and final true distance from the Target (Ground Truth).
-2. Learning Module: Reads the loss and adjusts the float[] params used by the Generator (sensor bias/noise) and Transition (belief/action weights).
+### A. Dynamic Bridge Architecture
+The core priority of V2 is replacing hardcoded `double[][][]` arrays with dynamic "Bridge" interfaces. Bridges must:
+- Maintain Data-Oriented cache locality (zero object allocation during ticks).
+- Dynamically scale to N-dimensions without hardcoded loops.
+- Support chunked "dirty-tracking" so only modified sectors of the grid/field are recalculated.
 
-## 3. Data Flow & Bridge Memory Layouts
+### B. Hardware Acceleration (C++ / CUDA)
+The mathematical implementations of the `Generator` and `Transition` modules must be designed in a way that allows them to be stripped out and rewritten as OpenCL or CUDA kernels.
+- The Java orchestrator (`World`) will manage the memory boundaries.
+- JNI or Project Panama will be used to dispatch batch matrices to the GPU/C++ backend.
 
-Bridges are fixed-size primitive arrays acting as mailboxes. They contain no logic. The central Orchestrator passes these bridges between modules.
-
-* StateField Bridge: [entity_id, pos_x, pos_y, global_field_value]
-* StateTop Bridge: [entity_id, pos_x, pos_y]
-* TopologyGener Bridge: [neighbor_x, neighbor_y]
-* FieldGener Bridge: [true_signal_strength]
-* GenTrans Bridge: [neighbor_x, neighbor_y, noisy_signal_value]
-* StateCost Bridge: [agent_final_x, agent_final_y, target_true_x, target_true_y]
-
-## 4. State Management & Cache Invalidation
-
-To prevent massive redundant operations on the static 2D grid, state updates utilize a context-aware dirty flag pattern and the Strategy pattern.
-
-* DirtyManager (Base Class): State modules must extend a base class that tracks dirty regions, not just a blind boolean. It holds a bounding box or list of indices (List<Coordinates> dirty_cells).
-* Mutation Encapsulation: Modifying state (e.g., updateCell(x, y, value)) must automatically trigger markDirty(x, y) to prevent human error.
-* BridgeManager (Interface): A factory/manager that generates bridges. Implementations (e.g., DifferentialBridgeManager or ChunkedBridgeManager) read the dirty_cells payload to only recalculate and pass the specific grid sectors that changed, keeping the rest of the 100x100 grid safely cached.
-
-## 5. Development Phasing (Tracer Bullet Strategy)
-
-When writing code for this project, the AI must follow this strict vertical-slice implementation order:
-
-1. Phase 1: Pure Data (Bridges & Arrays): Define all Bridge data structures (primitive arrays) and ECS component arrays. Do not write module logic yet.
-2. Phase 2: Hollow Skeletons: Create the StateSpace, Topology, Generator, and Transition modules. Give them their required execution methods (e.g., process(Bridge input, float[] params)). Hardcode the return values (e.g., Generator always returns 1.0, Transition always returns "Move Right").
-3. Phase 3: The Orchestrator: Write the World loop that initializes the hollow modules and explicitly passes the Bridge buffers between them. Verify the agent blindly marches across the grid without null pointers or memory leaks.
-4. Phase 4: Mathematical Implementation: Replace the hollow module returns with actual parameterized mathematical logic (Bayesian updates in Transition, noise functions in Generator). Use constant mapping (e.g., final int IDX_NOISE = 0;) to access variables inside float[] params vectors.
-5. Phase 5: The Outer Loop: Implement the CostEvaluation ground-truth check and the LearningModule parameter adjustment logic.
+### C. Advanced ML
+The naive evolutionary elitism implemented in V1 must be replaced with robust batch-averaging gradient systems capable of handling non-Markovian decisions in extremely dynamic topologies (e.g. moving targets that require prediction rather than reactive field climbing).

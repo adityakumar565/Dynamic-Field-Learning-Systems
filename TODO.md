@@ -1,30 +1,26 @@
-# Noisy Forager Simulation - Project TODO List
+# Dynamic Field Learning Systems (DFLS) - Project TODO List
 
-- [x] **Phase 1: Pure Data (Bridges & Arrays)**
-  - [x] Define Bridge data structures (primitive arrays)
-  - [x] Implement DOD ECS component arrays (Structure of Arrays)
-  - [x] `StateSpace` Module Implementation
-  - [x] Zero-Allocation `FieldAlgebra` Math Utility
-  - [x] `HashTableFieldsImplementation` (Zero-Allocation Map)
-  - [x] Verify mathematical correctness and zero-allocation compliance via `FieldsTest.java`
+## ✅ V1.0 Prototype (COMPLETED)
+- [x] Implement DOD array-flattened processing (`World` orchestrator).
+- [x] Create hollow modular architecture (`Topology`, `Generator`, `Transition`).
+- [x] Hook up `EvolutionaryOptimizer` for automated gradient descent/elitism.
+- [x] Prove continuous vector convergence (Agents solving `DistanceCostFunction`).
+- [x] Build automated Python `matplotlib` visualization pipelines.
+- [x] Restructure as a standard Maven project for `.jar` deployment.
+- [x] Freeze V1.0 to GitHub `prototype` branch under tag `v1.0-prototype`.
 
-- [ ] **Phase 2: Hollow Skeletons**
-  - [x] Create `Topology` module with hollow `process()` method
-  - [x] Create `Generator` (Sensor Model) module with hollow `process(Bridge input, float[] params)` method
-  - [x] Create `Transition` (Policy) module with hollow `process(Bridge input, float[] params)` method
-  - [ ] Ensure all hollow modules accept `float[]` (or `double[]`) parameter vectors for agnostic optimization
+## 🚀 V2.0 Architecture (UPCOMING)
 
-- [ ] **Phase 3: The Orchestrator**
-  - [x] Create central `World` loop class (Inner Loop)
-  - [x] Initialize hollow modules inside the Orchestrator
-  - [x] Implement explicit Bridge buffer passing between modules (no direct method calls)
-  - [x] Verify agent blindly marches across the grid without null pointers/memory leaks
+### Phase 1: Bridge Data Structures
+- [ ] Replace hardcoded `double[][][]` with generic `Bridge` interfaces.
+- [ ] Implement fully dynamic dimensions (so the engine can scale to N-dimensions without losing cache locality).
+- [ ] Implement chunked dirty-tracking so the engine doesn't recalculate entire unchanged field grids.
 
-- [ ] **Phase 4: Mathematical Implementation**
-  - [ ] Replace hollow `Generator` with parameterized noise functions
-  - [ ] Replace hollow `Transition` with Bayesian probability update logic
-  - [ ] Map static indexes (e.g., `final int IDX_NOISE = 0`) to `float[] params` vectors
+### Phase 2: C++ / CUDA Kernel Integration
+- [ ] Extract the core mathematical operations inside `Generator` and `Transition`.
+- [ ] Write OpenCL/CUDA kernels for SIMD hardware execution.
+- [ ] Hook Java `World` orchestrator to C++ backend via JNI or Panama to scale agent counts into the millions.
 
-- [ ] **Phase 5: The Outer Loop**
-  - [ ] Implement `CostEvaluation` module (mathematical loss based on steps and ground truth distance)
-  - [ ] Implement `LearningModule` parameter adjustment logic
+### Phase 3: Advanced ML Topologies
+- [ ] Implement advanced Cost Functions (e.g., dynamic multi-target avoidance).
+- [ ] Replace naive elitism with batch-averaging ML policies to handle non-Markovian decision making across deeply dynamic topologies.

@@ -4,11 +4,13 @@
 [![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org/)
 [![Data-Oriented Design](https://img.shields.io/badge/Architecture-DOD-red?style=for-the-badge)](#)
 
-A blisteringly fast, data-oriented physics simulation and planning engine designed to optimize continuous state-space traversal using Machine Learning.
+A high-performance physics simulation and pathfinding engine that uses Machine Learning to teach agents how to navigate complex environments.
 
-This prototype demonstrates a highly-scalable, cache-friendly architecture capable of simulating hundreds of thousands of agents in real-time. By leveraging **Data-Oriented Design (DOD)** and flattening nested objects into pure contiguous memory arrays (`double[][][]`), this engine entirely bypasses traditional OOP overhead. 
+Instead of hardcoding rules for how agents should move, this engine allows agents to "learn" the best paths over time. By evaluating their surroundings (like the distance to a goal or avoiding obstacles) and repeatedly simulating their movements across multiple epochs, the agents evolve to find the mathematically optimal route to their targets.
 
-While currently demonstrated as a 2D physical pathfinding solver (seeking a target coordinate), the engine is completely generic. Through **Representation Theory**, discrete actions can be embedded into continuous vector spaces, turning this engine into a powerful Continuous Planning, Routing, or Model-Based Reinforcement Learning solver.
+While this v1.0 Prototype demonstrates 2D pathfinding (agents seeking a target coordinate), the core engine is completely generic. It can be adapted for any continuous planning, routing, or model-based reinforcement learning problem where an entity needs to figure out the best sequence of actions to achieve a goal.
+
+*(Under the hood, it achieves blazing fast speeds by flattening all data into simple contiguous arrays, bypassing traditional object-oriented overhead. This makes it capable of simulating hundreds of thousands of agents in real-time).*
 
 ---
 
@@ -26,24 +28,24 @@ When hooked up to the internal `EvolutionaryOptimizer`, a batch of 100 random ag
 
 ---
 
-## 🏗️ Architecture
+## 🏗️ How It Works
 
-The system is strictly decoupled into three overarching layers:
+The system is broken down into three main pieces:
 
-1. **Simulation Engine (Java)**: The core processing loop. Extremely fast, zero-allocation during execution.
-2. **Machine Learning Optimizer (Java)**: A separate module that evaluates Cost Functions and applies Elitism/Mutation across simulation epochs.
-3. **Visualizer (Python)**: Reads offline `.csv` dumps to render Matplotlib analytics.
+1. **Simulation Engine (Java)**: The ultra-fast core that moves the agents around the world.
+2. **Machine Learning Optimizer (Java)**: The "brain" that evaluates how well the agents did and evolves them to be smarter in the next round.
+3. **Visualizer (Python)**: Reads the simulation data and draws the graphs and paths.
 
-### Core Simulation Components
+### The Simulation Loop
 
-The internal tick loop is driven by the `World` orchestrator, passing contiguous memory blocks through four mathematically rigorous phases:
+Every "tick" of the simulation, the `World` orchestrator guides the agents through four intuitive steps:
 
-1. **State Space**: Represents the current continuous states of all agents (e.g., `X, Y` coordinates, or complex action embeddings).
-2. **Topology**: The rule engine. For a given state, it generates all valid adjacent "Next States" (or valid subsequent actions). Currently implemented as a Moore Neighborhood topology.
-3. **Field Generator**: Evaluates environmental signals (like distance to a target/bomb) at the neighbor coordinates and modulates them against the agent's internal Generation Weights. 
-4. **Agent Transition**: Aggregates the generated fields against the agent's Transition Weights to select the absolute best adjacent state, stepping the simulation forward.
+1. **State Space**: Where is the agent right now? (e.g., its X, Y coordinates).
+2. **Topology**: Where can the agent move next? (e.g., up, down, left, right, or diagonal).
+3. **Field Generator**: What is the environment like around those possible next steps? (e.g., is one step closer to the target? Is one step closer to a danger zone?).
+4. **Agent Transition**: Based on what it has learned, the agent looks at the surrounding environment and decides which step to take.
 
-Because these operations are purely array transformations, they are ripe for SIMD vectorization and GPU acceleration.
+By repeating this loop, agents navigate their world step-by-step. After a full simulation run, the ML Optimizer steps in to tweak how the agents evaluate their environments, making them better and faster for the next run.
 
 ---
 
